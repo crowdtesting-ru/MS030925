@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "sbertmodel",
+  "private_key_id": "64ae72e35a072138218c167dc87cc4bdb67dbdb8",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDenSg0v/O/qb5z\nQS779YwfRN0Bd9ej24wpjIv929QzrHPf0bDoHiXH6nLoND1wh/uTKMwB+X/j7vbs\nnsfjUbSmr4uj9EtFSOp1wRNXvUURtJTofQ2wmXM7yZ7/zuAVWCpC6EYHiT5WmlVA\nrQVJOLOnvwmhjsJMNgC458IbfwIOieRQnXt3P3zgf+qXEQj+CZLVdm53aTeIMJ40\nPsm2m0Gezj2Ae+RBKY2g/tnF+HGY1U2Kp3fm55HOrqsP5pzOSXrIkhU4oXzJBnmD\nyE3K1LVHYx0bh9OV0qyWR73dcyOm+6wW5GB+X1GBIhgAEDC5iGiD4zDHh78RBoiJ\nB0jfDEAVAgMBAAECggEABORx5nYUS2SI6niGw1CaRtk/fPffL3TOQXi0xOku/AAj\n8paY3pxDzhjbDW5eFICKKPavERk+IP2QXXmAQOcu4xdQwgaTtuiYB1F6DtlHUND/\nd5XAyZF9xLuBuPNMRAifGSXvEBBWMRbZ0Jhc2UcCCV0IWNqBCHK+LlIgynQbal1X\nJUsDuxSD3bjotHre1jbYJf7eppeXX8pq6yv36ZVWffTivD8jkqahLci97pjUWaLy\npdOqt/EaivQ7ovzM6EOYSYIKSpAl7TwfnkwqV1pV1e2OqKefqdcdlGqjc7AveL+N\nWyru0N4E+5wILiaQ9ykNKvt1x62jkMxntqao1BmtwQKBgQDu5mGe4t+FivEKPMDj\nEASZUhy2QeIHaNQBRLvgNqiv1thE4oEMouYBuLwyfsKJ7G/bcjEoawhP3Yw5EVWH\nEy0RYCg70a46xJmUqZRdCm43QKyxismIX+Pm5HX8kFPbVIQRkOMQ7vAb38Gy4MvN\npSW0mLkMSTqfrya1pExLOZ0YoQKBgQDujFlu98JkCKdz/HhnSap5yA/TEo8aehUE\ndCTRp9LY3FDsK2UcKCeZso+qZkTKkMaVc+OvH+ez+FrqSSPhxA0LvOyhiaNiDJev\nOWdanFdHm8j1/N27ns2w7cSgKmcdWzCmErTnJ8UMo2HjzRJQiVqOqH01H4I90ppK\nHKuVlg7u9QKBgQDXRmLRej9RZ1KtlvF5qwV547RbyCKV6rCgM//Ym2iGi2N3L2R6\nro/1HTL5jaBgCN8DMHN7qHdlAI9LHYOkpHMIJU4cGWaXLnH2tJks/ikzQORdWGMi\nsMX9WgG4BZaLHi2kZps2txlHBOrW9hqwxRClHLojiBl7q6mGJPdbEh+uAQKBgH6V\nuYuaK+xbb0isK9RbkfwnvsX57jhVmjuPyk366XcsikCY0oG7iTAVQglhVZXMd6St\nJ6AxpQmqe8whXcoa9/VHnqYl3K5WElPoeUDq/6G/OEfYlG1QWsRNl+6KMcexMUKf\nYKHdR8JqHLL+in50NLrJDBAZlUprLHaxehfZ1jjVAoGAc0dPbLuR2jQPRKFcouDZ\n8yfCpX3UXZIO8JnVwjVnJTWAFnmtMP1l9OGsVMpD8NAD/g6l19lz2rLLJNnr+KVQ\nYVystVGxCeote4ebXn66bIjq1S0JMq/9K/7MZHrbVlYBbDbnx8serPeRrh2+/Jus\nKN6c9DJHWGZjDYvqevBKCkE=\n-----END PRIVATE KEY-----\n",
+  "client_email": "sbert-16@sbertmodel.iam.gserviceaccount.com",
+  "client_id": "117118560686156136878",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/sbert-16%40sbertmodel.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

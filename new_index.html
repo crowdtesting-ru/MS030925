@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MS030925 • Тестирование ресторанов</title>
+    <meta name="description" content="Система поиска адресов для тестировщиков ресторанов" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="new_styles.css" />
+</head>
+<body>
+<div class="container">
+    <div class="search-card">
+        <h1>MS030925</h1>
+        <p style="color: var(--text-light); margin: 0 0 24px; font-size: 14px;"></p>
+        
+        <div class="form-group">
+            <label for="fio">ФИО тестировщика</label>
+            <input 
+                type="text" 
+                id="fio" 
+                placeholder="Введите полное ФИО" 
+                autocomplete="name"
+                spellcheck="false"
+            />
+        </div>
+        
+        <button id="findBtn">Найти адреса</button>
+
+        <div id="addresses" class="addresses" style="display:none;"></div>
+    </div>
+
+    <div id="details" class="details" style="display:none;">
+        <div class="tester"></div>
+        <div class="place"></div>
+        <div class="text"></div>
+    </div>
+</div>
+
+<script src="new_script.js"></script>
+</body>
+</html>
+
+
