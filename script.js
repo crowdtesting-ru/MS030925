@@ -96,8 +96,8 @@ async function findAssignments(fio) {
   excelData.выборка.forEach(row => {
     const tester = normalizeString(row['Тестировщик'] || '');
     const waveRaw = row['№ волны'];
-    const waveStr = String(waveRaw ?? '').trim().replace(',', '.');
-    const isWave1 = waveRaw === 1 || waveStr === '1' || waveStr === '1.0';
+    const waveStr = String(waveRaw ?? '').trim().toLowerCase();
+    const isWave1 = waveStr === 'волна 1';
 
     if (tester.includes(normalizedFio) && isWave1) {
       results.push({
