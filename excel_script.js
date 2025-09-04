@@ -161,9 +161,12 @@ async function findAssignments(fio) {
         checkedCount++;
         
         const тестировщик = normalizeString(row['Тестировщик'] || '');
-        const волна = row['№ волны'];
+        const волнаСырье = row['№ волны'];
+        // Нормализуем значение волны: поддерживаем 1, '1', '1 ', '1.0', '1,0'
+        const волнаСтр = String(волнаСырье ?? '').trim().replace(',', '.');
+        const этоПерваяВолна = волнаСырье === 1 || волнаСтр === '1' || волнаСтр === '1.0';
         
-        if (волна == 1) {
+        if (этоПерваяВолна) {
             wave1Count++;
         }
         
@@ -177,11 +180,11 @@ async function findAssignments(fio) {
         }
         
         // Фильтруем по ФИО и волне 1
-        if (тестировщик.includes(normalizedFio) && волна == 1) {
+        if (тестировщик.includes(normalizedFio) && этоПерваяВолна) {
             console.log(`✅ Найдено совпадение в строке ${index + 1}:`, {
                 тестировщик: row['Тестировщик'],
                 normalized: тестировщик,
-                волна: волна,
+                волна: волнаСырье,
                 партнер: row['Партнер'],
                 ресторан: row['Ресторан']
             });
@@ -192,7 +195,7 @@ async function findAssignments(fio) {
                 address: row['Адрес'] || '',
                 city: row['Город'] || '',
                 method: row['Способ проверки'] || '',
-                wave: волна,
+                wave: волнаСырье,
                 booking: row['Нужна бронь?'] || '',
                 min_order: row['Минимальный заказ на доставку'] || '',
                 website: row['Ссылка на сайт'] || '',
