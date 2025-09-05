@@ -138,9 +138,9 @@ function renderAddresses(items) {
   }
 
   const html = items.map(item => `
-    <div class="addr" data-partner="${htmlEscape(item.partner)}" data-method="${htmlEscape(item.method)}">
+    <div class="addr" data-partner="${htmlEscape(item.partner)}" data-method="${htmlEscape(item.method)}" data-restaurant="${htmlEscape(item.restaurant)}" data-address="${htmlEscape(item.address)}" data-city="${htmlEscape(item.city)}">
       <div class="addr-header"><strong>${htmlEscape(item.partner)}</strong> — ${htmlEscape(item.restaurant)}</div>
-      <div class="addr-details">${htmlEscape(item.address)}<br>${htmlEscape(item.method)}</div>
+      <div class="addr-details"><em class="addr-line">${htmlEscape(item.address)}</em><br><span class="method-strong">${htmlEscape(item.method)}</span></div>
     </div>
   `).join('');
 
@@ -152,7 +152,10 @@ function renderAddresses(items) {
     node.addEventListener('click', async () => {
       const partner = node.dataset.partner;
       const method = node.dataset.method;
-      await onPick({ partner, method, display: node.textContent.trim() });
+      const restaurant = node.dataset.restaurant || '';
+      const address = node.dataset.address || '';
+      const city = node.dataset.city || '';
+      await onPick({ partner, method, restaurant, address, city });
     });
   });
 }
@@ -169,7 +172,11 @@ async function onPick(item) {
   const text = await findText(item.partner, item.method);
   details.style.display = 'block';
   details.querySelector('.tester').innerHTML = `Тестировщик: <strong>${htmlEscape($fio.value)}</strong>`;
-  details.querySelector('.place').innerHTML = htmlEscape(item.display);
+  details.querySelector('.place').innerHTML = `
+    <div><strong>${htmlEscape(item.partner)}</strong> — ${htmlEscape(item.restaurant)}</div>
+    <div><em class="addr-line">${htmlEscape(item.address)}</em></div>
+    <div><span class="method-strong">${htmlEscape(item.method)}</span></div>
+  `;
   details.querySelector('.text').innerHTML = (text || '').replace(/\n/g, '<br>');
   details.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }

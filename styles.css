@@ -78,6 +78,12 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .addr { background: var(--white); border: 2px solid var(--border); border-left: 4px solid var(--primary); padding: 20px; border-radius: var(--radius-small); cursor: pointer; transition: all .3s; }
 .addr:hover { transform: translateX(6px) translateY(-2px); box-shadow: var(--shadow-hover); }
 
+/* Курсив для адреса */
+.addr-line { font-style: italic; color: var(--text-dark); }
+
+/* Жирный способ + подчеркивание */
+.method-strong { font-weight: 700; text-decoration: underline; }
+
 .details { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px; border: 1px solid var(--border); }
 .tester { font-weight: 700; font-size: 18px; color: var(--primary); margin-bottom: 16px; padding: 16px; background: linear-gradient(135deg, rgba(61,162,135,.1) 0%, rgba(79,181,153,.05) 100%); border-radius: var(--radius-small); border-left: 4px solid var(--primary); }
 .place { margin: 16px 0 24px; font-size: 16px; font-weight: 600; color: var(--text-dark); padding: 16px; background: #f8f9fa; border-radius: var(--radius-small); border: 1px solid var(--border); }
