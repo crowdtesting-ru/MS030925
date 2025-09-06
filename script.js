@@ -300,6 +300,21 @@ function makeLinksClickable(text) {
   return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
 }
 
+function initCollapsibles(root) {
+  if (!root) return;
+  const blocks = root.querySelectorAll('.collapsible');
+  blocks.forEach(block => {
+    const header = block.querySelector('.collapsible-header');
+    if (!header) return;
+    // избегаем двойной подписки
+    if (header.dataset.bound === '1') return;
+    header.dataset.bound = '1';
+    header.addEventListener('click', () => {
+      block.classList.toggle('active');
+    });
+  });
+}
+
 
 async function onPick(item) {
   let details = document.getElementById('details');
@@ -322,6 +337,7 @@ async function onPick(item) {
   
   const formattedText = formatText(textData, item);
   details.querySelector('.text').innerHTML = formattedText;
+  initCollapsibles(details.querySelector('.text'));
   
   details.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
