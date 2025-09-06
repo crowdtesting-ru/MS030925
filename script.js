@@ -6,6 +6,32 @@ const $addresses = document.getElementById('addresses');
 const $container = document.querySelector('.container');
 
 let excelData = { выборка: null, тексты: null };
+let restaurantTexts = null;
+
+// Управление состояниями выполнения ресторанов
+function getCompletionKey(partner, restaurant, method) {
+  return `${partner}_${restaurant}_${method}`.replace(/\s+/g, '_');
+}
+
+function getCompletionStatus(partner, restaurant, method) {
+  const key = getCompletionKey(partner, restaurant, method);
+  return localStorage.getItem(`completion_${key}`) === 'true';
+}
+
+function setCompletionStatus(partner, restaurant, method, completed) {
+  const key = getCompletionKey(partner, restaurant, method);
+  if (completed) {
+    localStorage.setItem(`completion_${key}`, 'true');
+  } else {
+    localStorage.removeItem(`completion_${key}`);
+  }
+}
+
+function toggleCompletion(partner, restaurant, method) {
+  const currentStatus = getCompletionStatus(partner, restaurant, method);
+  setCompletionStatus(partner, restaurant, method, !currentStatus);
+  return !currentStatus;
+}
 
 const statusIndicator = document.createElement('div');
 statusIndicator.className = 'status-indicator';
@@ -40,12 +66,30 @@ function hideLoading(button, originalText) {
   button.textContent = originalText;
 }
 
+async function loadRestaurantTexts() {
+  try {
+    const response = await fetch('restaurant-texts.json');
+    if (!response.ok) {
+      throw new Error('Не удалось загрузить файл с текстами');
+    }
+    restaurantTexts = await response.json();
+    return true;
+  } catch (e) {
+    console.error('Ошибка загрузки текстов:', e);
+    showStatus('Ошибка загрузки текстов', true);
+    return false;
+  }
+}
+
 async function loadExcelFile() {
   try {
     if (location.protocol === 'file:') {
       showStatus('Откройте через http://localhost/ (не file://)', true);
       return false;
     }
+
+    // Загружаем JSON с текстами параллельно
+    const textsPromise = loadRestaurantTexts();
 
     // Сначала ищем рядом со страницей (new/data.xlsx), затем пробуем из корня проекта
     const candidatePaths = ['data.xlsx', 'Таблица для загрузки.xlsx', '../data.xlsx', '../Таблица для загрузки.xlsx'];
@@ -74,6 +118,9 @@ async function loadExcelFile() {
       // Лист "Тексты" может быть в подготовке — не блокируем работу, просто не будет инструкций
       excelData.тексты = [];
     }
+
+    // Ждем загрузки текстов
+    await textsPromise;
 
     showStatus(`Excel загружен (${excelData.выборка.length})`);
     return true;
@@ -115,12 +162,32 @@ async function findAssignments(fio) {
 }
 
 async function findText(partner, method) {
+  // Сначала пробуем найти в новой JSON структуре
+  if (!restaurantTexts) {
+    await loadRestaurantTexts();
+  }
+  
+  if (restaurantTexts && restaurantTexts.specific_texts) {
+    const np = normalizeString(partner);
+    const nm = normalizeString(method);
+    
+    // Ищем точное совпадение в JSON
+    for (const [key, textData] of Object.entries(restaurantTexts.specific_texts)) {
+      if (normalizeString(textData.partner) === np && normalizeString(textData.method) === nm) {
+        return textData;
+      }
+    }
+  }
+  
+  // Fallback на старую систему Excel если не найдено в JSON
   if (!excelData.тексты) { await loadExcelFile(); }
   if (!excelData.тексты || excelData.тексты.length < 3) return '';
+  
   const partnersRow = excelData.тексты[0] || [];
   const methodsRow = excelData.тексты[1] || [];
   const textsRow = excelData.тексты[2] || [];
   const np = normalizeString(partner), nm = normalizeString(method);
+  
   for (let i = 1; i < partnersRow.length; i++) {
     if (normalizeString(partnersRow[i]) === np && normalizeString(methodsRow[i]) === nm) {
       return textsRow[i] || '';
@@ -137,28 +204,102 @@ function renderAddresses(items) {
     return;
   }
 
-  const html = items.map(item => `
-    <div class="addr" data-partner="${htmlEscape(item.partner)}" data-method="${htmlEscape(item.method)}" data-restaurant="${htmlEscape(item.restaurant)}" data-address="${htmlEscape(item.address)}" data-city="${htmlEscape(item.city)}">
-      <div class="addr-header"><strong>${htmlEscape(item.partner)}</strong> — ${htmlEscape(item.restaurant)}</div>
-      <div class="addr-details"><em class="addr-line">${htmlEscape(item.address)}</em><br><span class="method-strong">${htmlEscape(item.method)}</span></div>
-    </div>
-  `).join('');
+  const html = items.map(item => {
+    const isCompleted = getCompletionStatus(item.partner, item.restaurant, item.method);
+    const statusClass = isCompleted ? 'completed' : 'pending';
+    
+    return `
+      <div class="addr ${statusClass}" data-partner="${htmlEscape(item.partner)}" data-method="${htmlEscape(item.method)}" data-restaurant="${htmlEscape(item.restaurant)}" data-address="${htmlEscape(item.address)}" data-city="${htmlEscape(item.city)}">
+        <div class="addr-header"><strong>${htmlEscape(item.partner)}</strong> — ${htmlEscape(item.restaurant)}</div>
+        <div class="addr-details"><em class="addr-line">${htmlEscape(item.address)}</em><br><span class="method-strong">${htmlEscape(item.method)}</span></div>
+        <div class="completion-toggle" title="${isCompleted ? 'Отменить выполнение' : 'Отметить как выполненное'}"></div>
+      </div>
+    `;
+  }).join('');
 
   $addresses.innerHTML = html;
   $addresses.style.display = 'block';
   $container.classList.add('with-result');
 
   document.querySelectorAll('.addr').forEach(node => {
-    node.addEventListener('click', async () => {
-      const partner = node.dataset.partner;
-      const method = node.dataset.method;
-      const restaurant = node.dataset.restaurant || '';
-      const address = node.dataset.address || '';
-      const city = node.dataset.city || '';
-      await onPick({ partner, method, restaurant, address, city });
+    const partner = node.dataset.partner;
+    const method = node.dataset.method;
+    const restaurant = node.dataset.restaurant || '';
+    const address = node.dataset.address || '';
+    const city = node.dataset.city || '';
+
+    // Обработчик клика на основную область (открытие инструкций)
+    node.addEventListener('click', async (e) => {
+      if (!e.target.classList.contains('completion-toggle')) {
+        await onPick({ partner, method, restaurant, address, city });
+      }
+    });
+
+    // Обработчик клика на кнопку переключения состояния
+    const toggleBtn = node.querySelector('.completion-toggle');
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const newStatus = toggleCompletion(partner, restaurant, method);
+      
+      if (newStatus) {
+        node.classList.remove('pending');
+        node.classList.add('completed');
+        toggleBtn.title = 'Отменить выполнение';
+        showStatus(`Ресторан "${restaurant}" отмечен как выполненный`, false);
+      } else {
+        node.classList.remove('completed');
+        node.classList.add('pending');
+        toggleBtn.title = 'Отметить как выполненное';
+        showStatus(`Отметка выполнения снята с "${restaurant}"`, false);
+      }
     });
   });
 }
+
+
+function formatText(textData, item) {
+  if (typeof textData === 'string') {
+    // Старый формат из Excel
+    return textData.replace(/\n/g, '<br>');
+  }
+  
+  if (!textData || typeof textData !== 'object') {
+    return 'Инструкция не найдена для данной комбинации партнера и способа проверки.';
+  }
+  
+  // Новый формат из JSON
+  let generalTemplate = '';
+  if (restaurantTexts && restaurantTexts.templates && restaurantTexts.templates.general) {
+    generalTemplate = restaurantTexts.templates.general.content;
+  }
+  
+  // Сначала заменяем плейсхолдеры в специфичном тексте
+  let specificContent = (textData.content || '')
+    .replace(/&lt;Название&gt;/g, item.restaurant)
+    .replace(/&lt;Адрес&gt;/g, item.address)
+    .replace(/&lt;Способ проверки&gt;/g, item.method)
+    .replace(/&lt;Сервис для оформления доставки&gt;/g, 'нужный сервис доставки');
+  
+  // Теперь заменяем плейсхолдеры в общем шаблоне
+  let result = generalTemplate
+    .replace(/&lt;ФИО&gt;/g, $fio.value)
+    .replace(/&lt;Название&gt;/g, item.restaurant)
+    .replace(/&lt;Адрес&gt;/g, item.address)
+    .replace(/&lt;Способ проверки&gt;/g, item.method)
+    .replace(/{SPECIFIC_TEXT}/g, specificContent);
+  
+  // Делаем ссылки кликабельными
+  result = makeLinksClickable(result);
+  
+  return result.replace(/\n/g, '<br>');
+}
+
+function makeLinksClickable(text) {
+  // Регулярное выражение для поиска URL
+  const urlRegex = /(https?:\/\/[^\s<>"]+)/g;
+  return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+}
+
 
 async function onPick(item) {
   let details = document.getElementById('details');
@@ -169,7 +310,8 @@ async function onPick(item) {
     details.innerHTML = '<div class="tester"></div><div class="place"></div><div class="text"></div>';
     $container.appendChild(details);
   }
-  const text = await findText(item.partner, item.method);
+  
+  const textData = await findText(item.partner, item.method);
   details.style.display = 'block';
   details.querySelector('.tester').innerHTML = `Тестировщик: <strong>${htmlEscape($fio.value)}</strong>`;
   details.querySelector('.place').innerHTML = `
@@ -177,7 +319,10 @@ async function onPick(item) {
     <div><em class="addr-line">${htmlEscape(item.address)}</em></div>
     <div><span class="method-strong">${htmlEscape(item.method)}</span></div>
   `;
-  details.querySelector('.text').innerHTML = (text || '').replace(/\n/g, '<br>');
+  
+  const formattedText = formatText(textData, item);
+  details.querySelector('.text').innerHTML = formattedText;
+  
   details.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -194,6 +339,7 @@ async function performSearch() {
     console.error(e); showStatus('Ошибка поиска', true);
   } finally { hideLoading($btn, orig); }
 }
+
 
 document.addEventListener('DOMContentLoaded', async () => {
   $fio.focus();
