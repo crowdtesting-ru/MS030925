@@ -93,10 +93,11 @@ async function loadExcelFile() {
 
     // Сначала ищем рядом со страницей (new/data.xlsx), затем пробуем из корня проекта
     const candidatePaths = ['data.xlsx', 'Таблица для загрузки.xlsx', '../data.xlsx', '../Таблица для загрузки.xlsx'];
+    const withBust = (p) => `${p}${p.includes('?') ? '&' : '?'}v=${Date.now()}`;
     let response = null;
     for (const path of candidatePaths) {
       try {
-        const r = await fetch(encodeURI(path));
+        const r = await fetch(encodeURI(withBust(path)), { cache: 'no-store' });
         if (r.ok) { response = r; break; }
       } catch (_) {}
     }
