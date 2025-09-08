@@ -347,7 +347,7 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .text {
   border-top: 2px solid var(--border);
   padding-top: 24px;
-  white-space: normal;
+  white-space: pre-line;
   font-size: 15px;
   line-height: 1.7;
 }
@@ -453,9 +453,7 @@ button:disabled { opacity: .6; cursor: not-allowed; }
   margin-bottom: 12px;
 }
 
-.text br + br {
-  margin-bottom: 8px;
-}
+.text br + br { }
 
 
 @media (max-width: 768px) {

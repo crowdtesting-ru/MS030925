@@ -261,7 +261,11 @@ function renderAddresses(items) {
 function formatText(textData, item) {
   if (typeof textData === 'string') {
     // Старый формат из Excel
-    return textData.replace(/\n/g, '<br>');
+    const cleaned = (textData || '')
+      .replace(/\r\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    return cleaned.replace(/\n/g, '<br>');
   }
   
   if (!textData || typeof textData !== 'object') {
@@ -291,8 +295,13 @@ function formatText(textData, item) {
   
   // Делаем ссылки кликабельными
   result = makeLinksClickable(result);
-  
-  return result.replace(/\n/g, '<br>');
+
+  // Сохраняем переносы строк как в тексте (минимальная нормализация)
+  result = result
+    .replace(/\r\n/g, '\n');
+
+  const hasHtml = /<\/?[a-z][\s\S]*?>/i.test(result);
+  return hasHtml ? result : result.replace(/\n/g, '<br>');
 }
 
 function makeLinksClickable(text) {
