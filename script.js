@@ -5,7 +5,7 @@ const $btn = document.getElementById('findBtn');
 const $addresses = document.getElementById('addresses');
 const $container = document.querySelector('.container');
 
-let excelData = { выборка: null, тексты: null };
+let excelData = { выборка: null, тексты: null, доставки: null };
 let restaurantTexts = null;
 
 // Управление состояниями выполнения ресторанов
@@ -18,13 +18,20 @@ function getCompletionStatus(partner, restaurant, method) {
   return localStorage.getItem(`completion_${key}`) === 'true';
 }
 
-function setCompletionStatus(partner, restaurant, method, completed) {
+async function setCompletionStatus(partner, restaurant, method, completed) {
   const key = getCompletionKey(partner, restaurant, method);
   if (completed) {
     localStorage.setItem(`completion_${key}`, 'true');
   } else {
     localStorage.removeItem(`completion_${key}`);
   }
+  try {
+    await fetch('/api/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fio: document.getElementById('fio').value.trim(), partner, restaurant, method, completed })
+    });
+  } catch (_) {}
 }
 
 function toggleCompletion(partner, restaurant, method) {
@@ -120,6 +127,13 @@ async function loadExcelFile() {
       excelData.тексты = [];
     }
 
+    // Адреса доставок — берем сервис оформления
+    if (workbook.SheetNames.includes('Адреса доставок')) {
+      excelData.доставки = XLSX.utils.sheet_to_json(workbook.Sheets['Адреса доставок']);
+    } else {
+      excelData.доставки = [];
+    }
+
     // Ждем загрузки текстов
     await textsPromise;
 
@@ -149,6 +163,7 @@ async function findAssignments(fio) {
 
     if (tester.includes(normalizedFio) && isWave1) {
       results.push({
+        id: row['ID'] || row['Id'] || row['id'] || '',
         partner: row['Партнер'] || '',
         restaurant: row['Ресторан'] || '',
         address: row['Адрес'] || '',
@@ -278,12 +293,36 @@ function formatText(textData, item) {
     generalTemplate = restaurantTexts.templates.general.content;
   }
   
+  function getDeliveryService(item) {
+    if (!excelData.доставки || excelData.доставки.length === 0) return '';
+    const nid = (item.id || '').toString().trim();
+    const np = normalizeString(item.partner);
+    const nr = normalizeString(item.restaurant);
+    const na = normalizeString(item.address);
+    // 1) по ID
+    if (nid) {
+      const row = excelData.доставки.find(r => (r['ID'] || r['Id'] || r['id'] || '').toString().trim() === nid);
+      if (row && row['Сервис для оформления доставки']) return String(row['Сервис для оформления доставки']).trim();
+    }
+    // 2) по партнеру + адресу (+ ресторан)
+    const found = excelData.доставки.find(r => {
+      const rp = normalizeString(r['Партнер'] || '');
+      const rr = normalizeString(r['Ресторан'] || '');
+      const ra = normalizeString(r['Адрес'] || '');
+      return rp === np && (ra === na || rr === nr);
+    });
+    return found ? String(found['Сервис для оформления доставки'] || '').trim() : '';
+  }
+  
   // Сначала заменяем плейсхолдеры в специфичном тексте
   let specificContent = (textData.content || '')
     .replace(/&lt;Название&gt;/g, item.restaurant)
     .replace(/&lt;Адрес&gt;/g, item.address)
     .replace(/&lt;Способ проверки&gt;/g, item.method)
-    .replace(/&lt;Сервис для оформления доставки&gt;/g, 'нужный сервис доставки');
+    .replace(/&lt;Сервис для оформления доставки&gt;/g, (() => {
+      const url = getDeliveryService(item);
+      return url ? url : 'сервис доставки (ссылка не найдена)';
+    })());
   
   // Теперь заменяем плейсхолдеры в общем шаблоне
   let result = generalTemplate
